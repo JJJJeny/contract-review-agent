@@ -1,0 +1,16 @@
+# Data you download yourself (too large / not ours to redistribute in full)
+CUAD_v1.json
+CUAD_v1.zip
+cuad_raw/
+
+# Notebook outputs
+cuad_project_data/
+cuad_project_data.zip
+
+# Labeling sheets stay private until both annotators are done
+labels_*.xlsx
+
+# macOS / Jupyter
+.DS_Store
+.ipynb_checkpoints/
+__pycache__/

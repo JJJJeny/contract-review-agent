@@ -1,0 +1,16 @@
+contract_id,short_name,split,cuad_folder,words,cuad_title
+C01,Garman software maintenance,dev,Maintenance,3885,SPARKLINGSPRINGWATERHOLDINGSLTD_07_03_2002-EX-10.13-SOFTWARE LICENSE AND MAINTENANCE AGREEMENT
+C02,Kubient master services,dev,Service,4014,"KUBIENT,INC_07_02_2020-EX-10.14-MASTER SERVICES AGREEMENT_Part1"
+C03,Medical Manager IT maintenance,test,Maintenance,2208,TRIZETTOGROUPINC_08_18_1999-EX-10.17-TECHNICAL INFRASTRUCTURE MAINTENANCE AGREEMENT
+C04,CityNet network maintenance,test,Maintenance,2676,UAGHINC_04_14_2004-EX-10.18-MAINTENANCE AGREEMENT
+C05,CRO Consulting master services,test,Service,2694,"PAXMEDICA,INC_07_02_2020-EX-10.12-Master Service Agreement"
+C06,RadialSpark master services,test,Service,3328,MERITLIFEINSURANCECO_06_19_2020-EX-10.(XIV)-MASTER SERVICES AGREEMENT
+C07,XIMAGE system maintenance,test,Maintenance,2925,IMAGEWARESYSTEMSINC_12_20_1999-EX-10.22-MAINTENANCE AGREEMENT
+C08,Sicap software maintenance/support,test,Maintenance,3435,SLOVAKWIRELESSFINANCECOBV_03_28_2001-EX-4.(B)(II).3-Maintenance and support contract for SICAP(R) modules
+C09,Leader software maintenance,test,Maintenance,1595,HerImports_20161018_8-KA_EX-10.14_9765707_EX-10.14_Maintenance Agreement
+C10,E-Path software maintenance,test,Maintenance,7749,SFGFINANCIALCORP_05_12_2009-EX-10.1-SOFTWARE LICENSE AND MAINTENANCE AGREEMENT
+C11,Mobimagic service agreement,dev,Service,3326,OPERALTD_04_30_2020-EX-4.14-SERVICE AGREEMENT
+C12,Telcostar services agreement,dev,Service,4115,ABILITYINC_06_15_2020-EX-4.25-SERVICES AGREEMENT
+C13,StartEngine services agreement,test,Service,1122,"SOLUTIONSVENDINGINTERNATIONAL,INC_03_31_2020-EX1A-1 UNDR AGMT-SERVICES AGREEMENT"
+C14,XACCT support and maintenance,test,Maintenance,1796,"XACCT Technologies, Inc.SUPPORT AND MAINTENANCE AGREEMENT"
+C15,On2/Wildform software support and maintenance,test,Maintenance,8844,"ON2TECHNOLOGIES,INC_11_17_2006-EX-10.3-SUPPORT AND MAINTENANCE AGREEMENT"
