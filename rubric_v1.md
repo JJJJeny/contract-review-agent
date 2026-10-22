@@ -1,9 +1,9 @@
-# Rubric v1 — Vendor Service Contract Review (maintenance & services)
+# Rubric v1.1 — Vendor Service Contract Review (maintenance & services)
 
 **Project:** INF 385T contract-review agent (CUAD, 15 vendor service agreements C01–C15)
 **Scope (contract type):** *vendor service agreements*: a provider performs ongoing services (maintenance, support, IT, outsourcing, professional services) for a business customer that pays for them. Maintenance agreements are a subset. Out of scope: transportation/carriage, marketing/promotion partnerships, licenses without services, financing/"capital maintenance" agreements, employment, and agreements between affiliates. The six families below apply to every contract in scope.
-**Contract set:** 8 maintenance (C01, C03, C04, C07, C08, C09, C10, C14), 6 services (C02, C05, C06, C11, C12, C13), 1 outsourcing services (C15, CCA Industries / Emerson HealthCare; replaced the Dynamex transportation agreement). List with word counts: `contracts.csv`.
-**Status:** DRAFT v1. Every number marked **(P)** is *provisional*. Confirm or change it after hand-reading the four dev contracts (C01, C02, C11, C12), then bump to v1.1. Never tune thresholds on the 11 test contracts.
+**Contract set:** all 15 come from CUAD's *Maintenance* or *Service* folders: 9 maintenance (C01, C03, C04, C07, C08, C09, C10, C14, C15) and 6 services (C02, C05, C06, C11, C12, C13). C15 (On2 / Wildform software support and maintenance) replaced the Dynamex transportation agreement. List with word counts: `contracts.csv`.
+**Status:** v1.1. Thresholds checked against the four dev contracts (C01, C02, C11, C12); see §8. Numbers still marked **(P)** did not occur in any dev contract and stay provisional. Never tune thresholds on the 11 test contracts.
 
 ---
 
@@ -73,8 +73,11 @@ If the clause is in a cross-referenced section, the agent (and you) must **follo
 | Suspension for non-payment | Only after written notice and ≥ **10 days** (P) to cure | Immediate suspension, or suspension without notice |
 | Price changes | Fixed for the term, or increases capped (≤ **5%/yr** or CPI) (P) with ≥ **30 days** notice (P) | Provider may raise fees at will, or with no cap |
 | Expenses | Pre-approved or capped | Customer reimburses any provider expenses without approval |
+| Pricing model | Fixed fee, or time-and-materials / cost-plus with a budget cap or estimate | Cost-plus or time-and-materials with no cap or estimate (**low**) |
 
 **Missing:** no fees or payment terms anywhere, and no exhibit is referenced → `missing`, **medium**. If an exhibit holds the fees but isn't in the text → `unclear`, **low**.
+
+**Customer is not the payer** (e.g. revenue share where the provider pays the customer): judge only the sub-criteria that still apply (taxes, expenses). If none is risky → `acceptable`, and write "customer is not the payer" in `notes`.
 
 **Severity:** suspension without notice, or uncapped unilateral price increases → **high**. Short window, high late fee, non-refundable prepayment → **medium**. Unapproved expenses, Net 15–29 → **low**.
 
@@ -87,13 +90,13 @@ If the clause is in a cross-referenced section, the agent (and you) must **follo
 
 | Sub-criterion | Acceptable | Risky |
 |---|---|---|
-| Customer exit for convenience | Customer may terminate without cause on ≤ **90 days** notice (P) | No customer right while provider has one (**high**), or notice > 90 days (**medium**) |
+| Customer exit for convenience | Customer may terminate without cause on ≤ **90 days** notice (90 itself is acceptable) | No customer right while provider has one (**high**), or notice > 90 days (**medium**) |
 | Termination for cause | Either party may terminate for material breach | Only the provider may terminate for cause (**high**) |
 | Cure period | **15–30 days** (P) after written notice | No cure for the customer, or cure for the provider > **60 days** (P) (**medium**) |
 | Exit cost | Pay only for services delivered up to the end date; pro-rata refund of prepaid fees | Early termination fee, acceleration of all remaining fees, or no refund of prepaid fees (**high** if acceleration, else **medium**) |
 | Transition | Provider returns customer data / assists transition (Post-Termination Services) | No data return at all (**medium**), when the provider holds customer data |
 
-**Missing:** the contract has no termination clause and the term is indefinite → `missing`, **high** (no exit). Fixed term with no early termination at all → `risky`, **medium** if term ≤ 1 year (P), **high** if longer.
+**Missing:** the contract has no termination clause and the term is indefinite → `missing`, **high** (no exit). Fixed term with no early termination at all → `risky`, **low** if term ≤ 1 year, **high** if longer. The same applies to a locked initial term of ≤ 1 year followed by a convenience exit.
 
 ---
 
@@ -104,8 +107,9 @@ If the clause is in a cross-referenced section, the agent (and you) must **follo
 
 | Sub-criterion | Acceptable | Risky |
 |---|---|---|
-| Provider's cap | Provider's liability capped at no less than **12 months of fees** (P) | Cap below fees paid in the last **3 months** (P), or a fixed amount well below annual fees (**medium**); provider liability excluded entirely (**high**) |
+| Provider's cap | Provider's liability capped at no less than **12 months of fees** | Cap below fees paid in the last **3 months** (P), or a fixed amount well below annual fees (**medium**); provider liability excluded entirely (**high**) |
 | Mutuality | Cap and consequential-damages exclusion apply to **both** parties | Provider capped, customer uncapped (**high**) |
+| No cap at all | Neither party's liability is capped: the provider sub-criterion is acceptable (customer can recover in full). Note "no cap either side" and judge the row on the other sub-criteria. | — |
 | Carve-outs | Cap does not apply to provider's breach of confidentiality, data breach, IP indemnity, gross negligence or wilful misconduct | Cap covers provider's gross negligence/wilful misconduct (**medium**) |
 | Indemnity by provider | Provider indemnifies customer for third-party IP infringement and for injury/property damage caused by provider | No provider indemnity (**medium**) |
 | Indemnity by customer | Limited to customer's own breach / misuse | Customer indemnifies provider broadly, "any and all claims arising from this Agreement" (**high**) |
@@ -159,6 +163,7 @@ If the clause is in a cross-referenced section, the agent (and you) must **follo
 | Governing law | A named U.S. state (or the customer's own country) | Foreign law unfamiliar to a U.S. small business (**medium**) |
 | Venue / forum | Customer's home state, or neutral, or not exclusive | Exclusive venue far from the customer (provider's state or abroad) (**medium**) |
 | Arbitration | None, or mutual with shared costs | Mandatory arbitration with customer paying fees, or abroad (**medium**) |
+| Court vs arbitration | One forum | Exclusive courts **and** mandatory arbitration in the same contract → `unclear`, **low** (quote both clauses) |
 | Waivers | — | Jury waiver or class-action waiver binding only the customer (**low**) |
 | Attorney fees | Each party pays its own, or prevailing party (mutual) | Customer pays provider's fees regardless of outcome (**medium**) |
 | Escalation | Informal negotiation/mediation step before litigation | — (absence is fine) |
@@ -179,27 +184,51 @@ Each plan item must state: the finding (family, verdict, severity), the quoted e
 
 ---
 
-## 8. Hand-reading worksheet (fill in from the dev contracts, then fix the (P) numbers)
+## 8. Hand-reading worksheet (dev contracts)
 
-Read C01, C02, C11, C12. Write down **every number you see**. If most real contracts sit on the "risky" side of a threshold, the threshold is probably too strict for this contract type; discuss and adjust before labeling the test set.
+Filled 2026-10-22 from C01, C02, C11, C12 (section numbers in parentheses). Numbers only, no verdicts. Annotators: check the cells against the text before labeling.
 
-| Item | C01 | C02 | C11 | C12 | Keep / change threshold? |
+| Item | C01 Garman (maintenance) | C02 Kubient (services) | C11 Mobimagic (services) | C12 Telcostar (services) | Current threshold |
 |---|---|---|---|---|---|
-| Customer / Provider | | | | | |
-| Annual fees | | | | | |
-| Payment window (Net X) | | | | | 30 / 15 |
-| Late fee | | | | | 1.5%/mo |
-| Price increase cap | | | | | 5%/yr |
-| Customer convenience-termination notice | | | | | 90 days |
-| Cure period | | | | | 15–30 / 60 days |
-| Liability cap (amount or formula) | | | | | 12 months / 3 months fees |
-| Customer liability capped too? | | | | | — |
-| Indemnity direction | | | | | — |
-| Confidentiality survival | | | | | 2 years |
-| Initial term / renewal term | | | | | 1 year |
-| Non-renewal notice | | | | | 60 / 90 days |
-| Governing law / venue / arbitration | | | | | — |
+| Customer / Provider | Sparkling Spring Water (CA) / Garman Routing Systems | The Associated Press / Kubient | PC Financial Services (India) / Mobimagic (China) | Telcostar + Ability Computer (SG/IL) / name redacted | — |
+| Annual fees | Not in text: "Fee Schedule" (Sched. A) not attached (§11) | No fee: revenue share set out in an Exhibit not attached; Kubient pays customer within 7 days of receipt (§5) | USD 970,000 per month = USD 11.64M/yr (§6.1) | Cost + 10% plus out-of-pocket costs (§2.2(a)); Exhibit A redacted | — |
+| Payment window (Net X) | Not stated (in Fee Schedule) | Not applicable: customer receives money | **Net 45** after customer confirms the invoice (§6.1) | **Net 15** from receipt of invoice (§2.2(b)(ii)) | 30 / 15 |
+| Late fee | None | None | None | None | 1.5%/mo |
+| Price increase cap | None stated | n/a (revenue share) | Fee changes only by mutual written agreement (§6.4) | Cost-plus: price moves with provider's actual costs, no cap (§2.2(a)) | 5%/yr |
+| Disputed invoices | Not addressed | n/a | Complaint within 20 business days, then negotiate / independent auditor (§6.5) | Written dispute before due date; undisputed part paid; provider keeps performing (§2.3) | — |
+| Expenses | Not addressed | Customer pays sales/use taxes (§5) | Each party bears own costs (§4.2) | Customer reimburses "reasonable and documented" out-of-pocket costs, **no pre-approval** (§2.2(a)) | pre-approved or capped |
+| Customer convenience-termination notice | **90 days**, any time (§17(b)) | **90 days**, but **only after the 1-year initial term**; no exit in year 1 (§4(a)) | **None**: fixed term Apr 2019 – Mar 2020 (§9.1) | **90 days**, any time; provider has the same right (§3.2) | 90 days |
+| Cure period | **30 days**, mutual (§17(c)(7)) | **30 days**, mutual (§4(b)) | **30 days**, mutual (§9.2) | **30 days**, mutual (§3.3) | 15–30 / 60 days |
+| Liability cap (amount or formula) | **No cap.** Direct damages only; consequential excluded both ways; exclusion does not apply to IP indemnity (§13) or confidentiality (§14) (§15) | **No cap.** Consequential excluded both ways, except indemnity and confidentiality (§7) | **Cap = total fees owed** (≈ 12 months), mutual (§10.2). §8.3 carves confidentiality out of the consequential exclusion; §10.2 has no carve-out (conflict) | **No cap and no consequential exclusion** | 12 months / 3 months fees |
+| Customer liability capped too? | No cap either side | No cap either side | Yes, same cap | No cap either side | — |
+| Indemnity direction | Provider → customer, IP only (§13) | Mutual: provider broad (services, platform, breach); customer for its content and misuse (§10) | Mutual: provider broad (services, breach, law); customer only for its own breach (§8) | Provider → customer only, for negligence, misconduct or breach, incl. first-party claims (§5.1) | — |
+| Confidentiality survival | Indefinite (survives, §18); mutual | **1 year from disclosure** (§12); mutual | **5 years** after expiry (§7); mutual | Perpetual ("during the term and thereafter", §4.1); return/destroy + erase (§3.6, §4.2) | 2 years |
+| Initial term / renewal term | Licence perpetual while fees paid (§17(a)); maintenance "renewable one-year term" with no renewal mechanism (§10) | 1 year, **auto-renews for 1-year terms** (§4(a)) | ~1 year fixed; renewal only by mutual written agreement (§9.1) | Fixed, ends Dec 31, 2020; no renewal (§3.1) | 1 year |
+| Non-renewal notice | Not stated | No separate notice; after year 1 either party may end on 90 days (§4(a)) | n/a | n/a | 60 / 90 days |
+| Governing law / venue / arbitration | Nova Scotia law; **non-exclusive** Nova Scotia courts (§20(h)) | Delaware law; **exclusive** NY courts **and** AAA arbitration (conflict); mutual jury waiver; 1-year limit on claims; prevailing-party fees (§8, §14(a), §14(d)) | Indian law; **exclusive** New Delhi courts **and** New Delhi arbitration (conflict) (§10.3) | Israeli law; **exclusive** Tel Aviv courts; customer may also seek injunctions abroad (§7.2–7.3) | — |
+
+### 8.1 Threshold review
+
+| Threshold | Dev evidence | Decision (v1.1) |
+|---|---|---|
+| Payment window: Net 30 ok, < 15 risky, 15–29 risky low | Net 45 (C11), Net 15 (C12); the other two don't state one | **Keep.** It separates the two contracts that state a window. |
+| Late fee ≤ 1.5%/mo | No dev contract has one | **Keep**, untested. |
+| Price increase ≤ 5%/yr | No contract has a stated increase. C12 is cost-plus | **Keep**, but add a rule for cost-plus pricing (applied in v1.1). |
+| Convenience exit ≤ 90 days | 90, 90 (after year 1), none, 90 | **Keep 90**, and state that 90 counts as acceptable (three contracts sit exactly on it). |
+| Fixed term, no early exit → risky **medium** if ≤ 1 year | C02 (year 1) and C11 would both be risky medium | **Lower to risky low** for a fixed term of ≤ 1 year (applied in v1.1). |
+| Cure 15–30 days | All four: 30 days, mutual | **Keep.** |
+| Provider cap ≥ 12 months of fees | Only C11 has a cap (≈ 12 months). Three have **no cap at all** | **Keep 12 months**, but the rubric has no rule for "no cap for either party" (applied in v1.1). |
+| Confidentiality survives ≥ 2 years | Indefinite, 1 year, 5 years, perpetual | **Keep.** It flags C02, which is the weak one. |
+| Auto-renewal ≤ 1 year | Only C02 auto-renews, for 1 year | **Keep.** |
+| Non-renewal notice ≤ 60 ok, 61–90 risky low, > 90 medium | C02's exit after year 1 is 90 days | **Keep.** |
+
+### 8.2 Notes for the report
+
+- **The customers are not small businesses.** AP, a fintech paying USD 970,000 a month, and two listed companies. CUAD only contains public-company filings. The rubric still judges from the small-business side, which is fine, but say so.
+- **Home law is usually foreign to the U.S.** Three dev contracts use non-U.S. law (Canada, India, Israel), but in each case it is the **customer's own** country. The rubric already treats that as acceptable.
+- **Fees often live in schedules that were not filed** (C01, C02, C12). Expect many `unclear` verdicts on payment, and on the liability cap test that needs annual fees.
 
 ## 9. Change log
-- v1, 2026-10-21 (rev. b): scope renamed to *vendor service agreements* and defined in the header. C15 changed from the Dynamex transportation agreement (out of scope) to the CCA Industries services outsourcing agreement. Dev set unchanged. CUAD category names in every **CUAD:** line checked against the real `CUAD_v1.json` (all 41 names; every name used here exists). No threshold changed.
+- v1.1 (2026-10-22): §8 filled from the four dev contracts. Thresholds kept: payment window, convenience-exit notice (90 days now explicitly acceptable), cure period, 12-month cap, confidentiality survival, auto-renewal, non-renewal notice. Rules added: no cap for either party (liability), short fixed term → risky **low** (was medium), cost-plus pricing without cap (payment), customer is not the payer (payment), court + arbitration conflict → unclear (dispute). Late fee, price-increase cap and suspension notice did not occur in dev contracts and stay (P).
+- v1, 2026-10-21 (rev. b): scope renamed to *vendor service agreements* and defined in the header. C15 changed from the Dynamex transportation agreement (out of scope) to the On2 / Wildform support and maintenance agreement, so all 15 come from CUAD's Maintenance or Service folders (C15 is 8,844 words; word cap raised to 9,000 for it). Dev set unchanged. CUAD category names in every **CUAD:** line checked against the real `CUAD_v1.json` (all 41 names; every name used here exists). No threshold changed.
 - v1 (2026-10-21): first draft from the family list in `01_data_setup.ipynb`. Thresholds provisional, not yet checked against dev contracts.
