@@ -20,6 +20,7 @@ Out of scope: transportation, marketing or promotion partnerships, licenses with
 | `contracts/C01.txt` … `C15.txt` | Full text of the 15 contracts, taken from `CUAD_v1.json` |
 | `contracts_pdf/C01.pdf` … `C15.pdf` | Original CUAD PDFs of the same 15 contracts, renamed to match the IDs |
 | `contracts_pdf/all_15_contracts.pdf` | All 15 PDFs merged into one file (120 pages), with a bookmark for each contract |
+| `Jenny_Labels_claude.xlsx` | Draft Track B labels for all 90 rows (verdict, severity, notes, evidence), written by Claude under rubric v1.1; to be reviewed by a human annotator |
 | `contracts.csv` | Contract list: ID, short name, dev/test split, CUAD folder, word count, original CUAD title |
 | `01_data_setup_v3.ipynb` | Colab notebook that rebuilds everything from CUAD: contract texts, CUAD answer key, coverage tables and the two labeling spreadsheets |
 
