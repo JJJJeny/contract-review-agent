@@ -18,6 +18,8 @@ Out of scope: transportation, marketing or promotion partnerships, licenses with
 |---|---|
 | `rubric_v1.md` | The review standard: for each of the six clause families, what counts as acceptable, risky, missing or unclear, and how severe it is |
 | `contracts/C01.txt` … `C15.txt` | Full text of the 15 contracts, taken from `CUAD_v1.json` |
+| `contracts_pdf/C01.pdf` … `C15.pdf` | Original CUAD PDFs of the same 15 contracts, renamed to match the IDs |
+| `contracts_pdf/all_15_contracts.pdf` | All 15 PDFs merged into one file (120 pages), with a bookmark for each contract |
 | `contracts.csv` | Contract list: ID, short name, dev/test split, CUAD folder, word count, original CUAD title |
 | `01_data_setup_v3.ipynb` | Colab notebook that rebuilds everything from CUAD: contract texts, CUAD answer key, coverage tables and the two labeling spreadsheets |
 
