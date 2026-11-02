@@ -14,3 +14,6 @@ labels_*.xlsx
 .DS_Store
 .ipynb_checkpoints/
 __pycache__/
+
+# ADK web local sessions
+.adk/
