@@ -9,8 +9,12 @@ cuad_project_data.zip
 
 # Labeling sheets stay private until both annotators are done
 labels_*.xlsx
+!labels_gold.xlsx
 
 # macOS / Jupyter
 .DS_Store
 .ipynb_checkpoints/
 __pycache__/
+
+# ADK web local sessions
+.adk/
