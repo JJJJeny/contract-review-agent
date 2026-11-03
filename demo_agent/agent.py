@@ -1,7 +1,8 @@
 """ADK web demo for the contract-review agent.
 
-All agent code lives in 02_agent_adk.ipynb. This file runs the notebook's code cells
-(sections 1-15, without the cells that call the API), then wraps one review in a
+All agent code lives in a notebook: 07_agent_v2_and_scoring.ipynb by default (set
+DEMO_NOTEBOOK=02_agent_adk.ipynb for the earlier version). This file runs its Part A code cells
+(sections 1-14, without the cells that call the API), then wraps one review in a
 root_agent so `adk web` shows the input, every tool call the verifier makes, and the
 final findings with their quotes, revision plan and human-review list.
 
@@ -22,8 +23,11 @@ REPO = Path(os.environ.get("REPO_DIR", Path(__file__).resolve().parents[1]))
 FAKE = bool(os.environ.get("DEMO_FAKE"))
 
 
+NOTEBOOK = os.environ.get("DEMO_NOTEBOOK", "07_agent_v2_and_scoring.ipynb")
+
+
 def _run_notebook():
-    nb = json.loads((REPO / "02_agent_adk.ipynb").read_text())
+    nb = json.loads((REPO / NOTEBOOK).read_text())
     g = {"__name__": "agent_notebook", "IN_COLAB": False, "DATA_DIR": REPO, "os": os, "sys": sys, "Path": Path,
          "EMBEDDER": None}
     on = False
@@ -31,12 +35,16 @@ def _run_notebook():
         src = "".join(cell["source"])
         if cell["cell_type"] == "markdown":
             on = on or src.startswith("## 1. Model")
-            if src.startswith("## 16."):
+            if src.startswith("## 16.") or src.startswith("# Part B"):
                 break
         elif on and not re.search(r"^\S.*\bawait\b", src, re.M):   # skip cells that run the agent
             if FAKE and "make_embedder()" in src:
                 continue                                              # no key needed for the fake model
-            exec(compile(src, f"<02_agent_adk.ipynb cell {i}>", "exec"), g)
+            exec(compile(src, f"<{NOTEBOOK} cell {i}>", "exec"), g)
+    if FAKE and "FakeAdkLlm" not in g:                                # the scripted fake model lives in 02
+        for cell in json.loads((REPO / "02_agent_adk.ipynb").read_text())["cells"]:
+            if cell["cell_type"] == "code" and "class FakeAdkLlm" in "".join(cell["source"]):
+                exec(compile("".join(cell["source"]), "<02_agent_adk.ipynb FakeAdkLlm>", "exec"), g)
     return g
 
 
