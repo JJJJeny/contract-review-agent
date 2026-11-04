@@ -27,7 +27,7 @@ NOTEBOOK = os.environ.get("DEMO_NOTEBOOK", "07_agent_v2_and_scoring.ipynb")
 
 
 def _run_notebook():
-    nb = json.loads((REPO / NOTEBOOK).read_text())
+    nb = json.loads((REPO / "notebooks" / NOTEBOOK).read_text())
     g = {"__name__": "agent_notebook", "IN_COLAB": False, "DATA_DIR": REPO, "os": os, "sys": sys, "Path": Path,
          "EMBEDDER": None}
     on = False
@@ -42,7 +42,7 @@ def _run_notebook():
                 continue                                              # no key needed for the fake model
             exec(compile(src, f"<{NOTEBOOK} cell {i}>", "exec"), g)
     if FAKE and "FakeAdkLlm" not in g:                                # the scripted fake model lives in 02
-        for cell in json.loads((REPO / "02_agent_adk.ipynb").read_text())["cells"]:
+        for cell in json.loads((REPO / "notebooks" / "02_agent_adk.ipynb").read_text())["cells"]:
             if cell["cell_type"] == "code" and "class FakeAdkLlm" in "".join(cell["source"]):
                 exec(compile("".join(cell["source"]), "<02_agent_adk.ipynb FakeAdkLlm>", "exec"), g)
     return g
