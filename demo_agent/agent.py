@@ -59,11 +59,13 @@ def say(ctx, text, author="contract_reviewer"):
 
 
 def report(cid, r, only):
-    lines = [f"## {cid}: findings", "", "| family | verdict | severity | how decided | evidence |", "|---|---|---|---|---|"]
+    lines = [f"## {cid}: findings", "", "| family | verdict | severity | how decided (trigger) | evidence |", "|---|---|---|---|---|"]
     for fam, f in r["results"].items():
+        trig = ", ".join(sorted(f.get("triggers") or {})) or "none"
         how = f["path"] if f.get("path") in ("prepass", "rag") else f"loop, {f.get('steps', 0)} steps"
+        how += f" (trigger: {trig})"
         if str(f.get("path", "")).startswith("forced"):
-            how = f["path"]
+            how = f["path"] + f" (trigger: {trig})"
         quote = (f.get("evidence_text") or "none found")[:160].replace("|", "/")
         mark = "**" if fam in only else ""
         lines.append(f"| {mark}{fam}{mark} | {f.get('verdict')} | {f.get('severity')} | {how} | {f.get('section_ref', '')} \"{quote}\" |")
