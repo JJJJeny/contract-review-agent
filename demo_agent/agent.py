@@ -87,12 +87,14 @@ class ContractReviewer(BaseAgent):
         cid = f"C{int(m.group(1)):02d}"
         only = [f for f in NB["FAMILIES"] if f.split("_")[0] in text.lower()] or NB["FAMILIES"]
         meta = NB["load_meta"]()[cid]
-        yield say(ctx, f"Reviewing **{cid} {meta['short_name']}** ({meta['split']} set). Pre-pass over all six "
-                       f"families, then the follow-up loop for the families whose triggers fire. Showing the steps for: "
-                       f"{', '.join(only)}.")
+        yield say(ctx, f"Reviewing **{cid} {meta['short_name']}** ({meta['split']} set). Pre-pass, then the follow-up "
+                       f"loop if a trigger fires. Family: {', '.join(only)}.")
         queue, shown = asyncio.Queue(), None
         NB["EVENT_SINK"] = lambda fam, ev: queue.put_nowait((fam, ev))
         contract = NB["Contract"].load(REPO / "data" / "contracts" / f"{cid}.txt", meta)
+        # review only the family the user asked about (all six when none is named): faster for the demo
+        all_families = NB["FAMILIES"]
+        NB["FAMILIES"] = list(only)
         task = asyncio.create_task(NB["review_contract"](contract, MODEL, EMBEDDER, "adaptive"))
         try:
             while not (task.done() and queue.empty()):
@@ -111,6 +113,7 @@ class ContractReviewer(BaseAgent):
             r = task.result()
         finally:
             NB["EVENT_SINK"] = None
+            NB["FAMILIES"] = all_families
         yield say(ctx, report(cid, r, only))
 
 
