@@ -81,7 +81,7 @@ class ContractReviewer(BaseAgent):
     async def _run_async_impl(self, ctx):
         text = "".join(p.text or "" for p in (ctx.user_content.parts if ctx.user_content else []))
         m = re.search(r"\bC\s?(\d{1,2})\b", text, re.I)
-        if not m or not (REPO / "contracts" / f"C{int(m.group(1)):02d}.txt").exists():
+        if not m or not (REPO / "data" / "contracts" / f"C{int(m.group(1)):02d}.txt").exists():
             yield say(ctx, "Type a contract id from C01 to C15, optionally with a clause family, e.g. `C05 termination`.")
             return
         cid = f"C{int(m.group(1)):02d}"
@@ -92,7 +92,7 @@ class ContractReviewer(BaseAgent):
                        f"{', '.join(only)}.")
         queue, shown = asyncio.Queue(), None
         NB["EVENT_SINK"] = lambda fam, ev: queue.put_nowait((fam, ev))
-        contract = NB["Contract"].load(REPO / "contracts" / f"{cid}.txt", meta)
+        contract = NB["Contract"].load(REPO / "data" / "contracts" / f"{cid}.txt", meta)
         task = asyncio.create_task(NB["review_contract"](contract, MODEL, EMBEDDER, "adaptive"))
         try:
             while not (task.done() and queue.empty()):
