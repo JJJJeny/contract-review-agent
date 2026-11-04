@@ -59,10 +59,25 @@ def say(ctx, text, author="contract_reviewer"):
 
 
 def report(cid, r, only):
-    lines = [f"## {cid}: findings", "", "| family | verdict | severity | how decided (trigger) | why | evidence |", "|---|---|---|---|---|---|"]
+    lines = [f"## {cid}: bottom line", ""]
+    for fam in only:
+        f = r["results"].get(fam)
+        if not f:
+            continue
+        pre = (f.get("prepass") or {}).get("verdict")
+        end = f.get("verdict")
+        sev = f" ({f.get('severity')} severity)" if f.get("severity") not in (None, "", "n/a") else ""
+        if f.get("path") in ("prepass", "rag"):
+            how = "No follow-up search was needed."
+        elif pre and pre != end:
+            how = f"The first pass said **{pre}**; the follow-up loop changed it."
+        else:
+            how = "The follow-up loop checked it and kept the first-pass verdict."
+        lines.append(f"- **{fam.replace('_', ' ')}: {str(end).upper()}**{sev}. {how}")
+    lines += ["", f"## {cid}: findings", "", "| family | verdict | severity | how decided (trigger) | why | evidence |", "|---|---|---|---|---|---|"]
     for fam, f in r["results"].items():
         trig = ", ".join(sorted(f.get("triggers") or {})) or "none"
-        how = f["path"] if f.get("path") in ("prepass", "rag") else f"loop, {f.get('steps', 0)} steps"
+        how = f["path"] if f.get("path") in ("prepass", "rag") else f"loop, {f.get('steps', 0)} step{'s' if f.get('steps', 0) != 1 else ''}"
         how += f" (trigger: {trig})"
         if str(f.get("path", "")).startswith("forced"):
             how = f["path"] + f" (trigger: {trig})"
@@ -78,7 +93,7 @@ def report(cid, r, only):
     lines += ["", "## For human review"]
     lines += [f"- {q['family']}: {q['question']}" for q in r["human_queue"]] or ["- nothing queued"]
     s = r["summary"]
-    lines += ["", f"_{s['llm_calls']} model calls, {s['tool_calls']} tool calls, ${s['cost_usd']}, {s['elapsed_s']} s_"]
+    lines += ["", f"_{s['llm_calls']} model call{'s' if s['llm_calls'] != 1 else ''}, {s['tool_calls']} tool call{'s' if s['tool_calls'] != 1 else ''}, ${s['cost_usd']}, {s['elapsed_s']} s_"]
     return "\n".join(lines)
 
 
@@ -106,6 +121,16 @@ class ContractReviewer(BaseAgent):
                 try:
                     fam, ev = await asyncio.wait_for(queue.get(), 0.5)
                 except asyncio.TimeoutError:
+                    continue
+                if ev.author == "prepass" and ev.content and ev.content.parts:
+                    try:
+                        pre = NB["parse_json"]("".join(p.text or "" for p in ev.content.parts)).get("families", {})
+                        for f_ in only:
+                            d = pre.get(f_) or {}
+                            yield say(ctx, f"Pre-pass, **{f_}**: {d.get('verdict', '?')} (confidence {d.get('confidence', '?')}). "
+                                           f"Code now checks whether this needs a closer look.")
+                    except Exception:
+                        pass
                     continue
                 if ev.author != "clause_verifier" or fam not in only or not (ev.content and ev.content.parts):
                     continue
