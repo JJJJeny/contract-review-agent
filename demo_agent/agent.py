@@ -59,7 +59,7 @@ def say(ctx, text, author="contract_reviewer"):
 
 
 def report(cid, r, only):
-    lines = [f"## {cid}: findings", "", "| family | verdict | severity | how decided (trigger) | evidence |", "|---|---|---|---|---|"]
+    lines = [f"## {cid}: findings", "", "| family | verdict | severity | how decided (trigger) | why | evidence |", "|---|---|---|---|---|---|"]
     for fam, f in r["results"].items():
         trig = ", ".join(sorted(f.get("triggers") or {})) or "none"
         how = f["path"] if f.get("path") in ("prepass", "rag") else f"loop, {f.get('steps', 0)} steps"
@@ -67,8 +67,11 @@ def report(cid, r, only):
         if str(f.get("path", "")).startswith("forced"):
             how = f["path"] + f" (trigger: {trig})"
         quote = (f.get("evidence_text") or "none found")[:160].replace("|", "/")
+        if f.get("evidence_2"):
+            quote += f' // {f.get("section_ref_2", "")} "{f["evidence_2"][:160]}"'.replace("|", "/")
+        why = (f.get("notes") or "").replace("|", "/").replace("\n", " ")
         mark = "**" if fam in only else ""
-        lines.append(f"| {mark}{fam}{mark} | {f.get('verdict')} | {f.get('severity')} | {how} | {f.get('section_ref', '')} \"{quote}\" |")
+        lines.append(f"| {mark}{fam}{mark} | {f.get('verdict')} | {f.get('severity')} | {how} | {why} | {f.get('section_ref', '')} \"{quote}\" |")
     lines += ["", "## Revision plan (most important first)"]
     lines += [f"{p['id']}. **{p['family']}** ({p['severity']}): {p.get('ask') or p.get('notes', '')}"
               + (f"  \n   if they refuse: {p['fallback']}" if p.get("fallback") else "") for p in r["plan"]] or ["nothing to change"]
