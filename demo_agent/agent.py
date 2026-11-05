@@ -59,21 +59,41 @@ def say(ctx, text, author="contract_reviewer"):
 
 
 def report(cid, r, only):
-    lines = [f"## {cid}: findings", "", "| family | verdict | severity | how decided | evidence |", "|---|---|---|---|---|"]
+    lines = [f"## {cid}: bottom line", ""]
+    for fam in only:
+        f = r["results"].get(fam)
+        if not f:
+            continue
+        pre = (f.get("prepass") or {}).get("verdict")
+        end = f.get("verdict")
+        sev = f" ({f.get('severity')} severity)" if f.get("severity") not in (None, "", "n/a") else ""
+        if f.get("path") in ("prepass", "rag"):
+            how = "No follow-up search was needed."
+        elif pre and pre != end:
+            how = f"The first pass said **{pre}**; the follow-up loop changed it."
+        else:
+            how = "The follow-up loop checked it and kept the first-pass verdict."
+        lines.append(f"- **{fam.replace('_', ' ')}: {str(end).upper()}**{sev}. {how}")
+    lines += ["", f"## {cid}: findings", "", "| family | verdict | severity | how decided (trigger) | why | evidence |", "|---|---|---|---|---|---|"]
     for fam, f in r["results"].items():
-        how = f["path"] if f.get("path") in ("prepass", "rag") else f"loop, {f.get('steps', 0)} steps"
+        trig = ", ".join(sorted(f.get("triggers") or {})) or "none"
+        how = f["path"] if f.get("path") in ("prepass", "rag") else f"loop, {f.get('steps', 0)} step{'s' if f.get('steps', 0) != 1 else ''}"
+        how += f" (trigger: {trig})"
         if str(f.get("path", "")).startswith("forced"):
-            how = f["path"]
+            how = f["path"] + f" (trigger: {trig})"
         quote = (f.get("evidence_text") or "none found")[:160].replace("|", "/")
+        if f.get("evidence_2"):
+            quote += f' // {f.get("section_ref_2", "")} "{f["evidence_2"][:160]}"'.replace("|", "/")
+        why = (f.get("notes") or "").replace("|", "/").replace("\n", " ")
         mark = "**" if fam in only else ""
-        lines.append(f"| {mark}{fam}{mark} | {f.get('verdict')} | {f.get('severity')} | {how} | {f.get('section_ref', '')} \"{quote}\" |")
+        lines.append(f"| {mark}{fam}{mark} | {f.get('verdict')} | {f.get('severity')} | {how} | {why} | {f.get('section_ref', '')} \"{quote}\" |")
     lines += ["", "## Revision plan (most important first)"]
     lines += [f"{p['id']}. **{p['family']}** ({p['severity']}): {p.get('ask') or p.get('notes', '')}"
               + (f"  \n   if they refuse: {p['fallback']}" if p.get("fallback") else "") for p in r["plan"]] or ["nothing to change"]
     lines += ["", "## For human review"]
     lines += [f"- {q['family']}: {q['question']}" for q in r["human_queue"]] or ["- nothing queued"]
     s = r["summary"]
-    lines += ["", f"_{s['llm_calls']} model calls, {s['tool_calls']} tool calls, ${s['cost_usd']}, {s['elapsed_s']} s_"]
+    lines += ["", f"_{s['llm_calls']} model call{'s' if s['llm_calls'] != 1 else ''}, {s['tool_calls']} tool call{'s' if s['tool_calls'] != 1 else ''}, ${s['cost_usd']}, {s['elapsed_s']} s_"]
     return "\n".join(lines)
 
 
@@ -87,18 +107,30 @@ class ContractReviewer(BaseAgent):
         cid = f"C{int(m.group(1)):02d}"
         only = [f for f in NB["FAMILIES"] if f.split("_")[0] in text.lower()] or NB["FAMILIES"]
         meta = NB["load_meta"]()[cid]
-        yield say(ctx, f"Reviewing **{cid} {meta['short_name']}** ({meta['split']} set). Pre-pass over all six "
-                       f"families, then the follow-up loop for the families whose triggers fire. Showing the steps for: "
-                       f"{', '.join(only)}.")
+        yield say(ctx, f"Reviewing **{cid} {meta['short_name']}** ({meta['split']} set). Pre-pass, then the follow-up "
+                       f"loop if a trigger fires. Family: {', '.join(only)}.")
         queue, shown = asyncio.Queue(), None
         NB["EVENT_SINK"] = lambda fam, ev: queue.put_nowait((fam, ev))
         contract = NB["Contract"].load(REPO / "data" / "contracts" / f"{cid}.txt", meta)
+        # review only the family the user asked about (all six when none is named): faster for the demo
+        all_families = NB["FAMILIES"]
+        NB["FAMILIES"] = list(only)
         task = asyncio.create_task(NB["review_contract"](contract, MODEL, EMBEDDER, "adaptive"))
         try:
             while not (task.done() and queue.empty()):
                 try:
                     fam, ev = await asyncio.wait_for(queue.get(), 0.5)
                 except asyncio.TimeoutError:
+                    continue
+                if ev.author == "prepass" and ev.content and ev.content.parts:
+                    try:
+                        pre = NB["parse_json"]("".join(p.text or "" for p in ev.content.parts)).get("families", {})
+                        for f_ in only:
+                            d = pre.get(f_) or {}
+                            yield say(ctx, f"Pre-pass, **{f_}**: {d.get('verdict', '?')} (confidence {d.get('confidence', '?')}). "
+                                           f"Code now checks whether this needs a closer look.")
+                    except Exception:
+                        pass
                     continue
                 if ev.author != "clause_verifier" or fam not in only or not (ev.content and ev.content.parts):
                     continue
@@ -111,6 +143,7 @@ class ContractReviewer(BaseAgent):
             r = task.result()
         finally:
             NB["EVENT_SINK"] = None
+            NB["FAMILIES"] = all_families
         yield say(ctx, report(cid, r, only))
 
 
