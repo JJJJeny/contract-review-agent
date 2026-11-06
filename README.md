@@ -2,9 +2,69 @@
 
 INF 385T project by Jenny and Kayla.
 
-We are building an agent that reviews a contract against a rubric, flags problems with evidence quoted from the contract, and produces a prioritized revision plan. The intended user is a **small business with no in-house lawyer** that has been sent a vendor's service or maintenance contract and wants to know what to push back on before signing.
+We built a bounded agent that reviews a contract against a rubric, flags problems with evidence quoted from the contract, and produces a prioritized revision plan. The intended user is a **small business with no in-house lawyer** that has been sent a vendor's service or maintenance contract and wants to know what to push back on before signing.
 
 **Layout.** Notebooks `01`–`07` (code) are in `notebooks/`; they run from the repo root. `data/` holds the contracts, rubric, CUAD spans and label sheets. `results/dev` and `results/test` hold the executed runs and score zips. `demo_agent/` is the `adk web` demo.
+
+## Run the demo
+
+The demo runs the agent from notebook 07 inside `adk web`. It shows the input, every tool call the verifier makes, and the final findings with quotes, the revision plan and the human-review list. The agent reviews only the clause family you ask about.
+
+You need Python 3.10 or later. Run everything from the repository root.
+
+**1. Clone the repository**
+
+```bash
+git clone https://github.com/JJJJeny/contract-review-agent.git
+cd contract-review-agent
+```
+
+**2. Install the dependencies**
+
+```bash
+pip install google-adk litellm rank_bm25 openai pandas python-multipart
+```
+
+**3. Set the API key.** The agent uses GPT-5 nano through the course Portkey gateway. Enter the key without echoing it, so it does not end up in your shell history:
+
+```bash
+read -s OPENAI_API_KEY && export OPENAI_API_KEY
+```
+
+No key? Use the scripted fake model instead. It needs no key or network, but its answers are canned and not real reviews:
+
+```bash
+export DEMO_FAKE=1
+```
+
+**4. Start the web UI**
+
+```bash
+adk web .
+```
+
+If `adk` is not on your PATH, or port 8000 is taken, use the module form with a free port:
+
+```bash
+python3 -m google.adk.cli web --port 8765 .
+```
+
+**5. Ask for a review.** Open http://127.0.0.1:8000 (or the port you chose), select `demo_agent` in the top left, and type a request, for example:
+
+```text
+I'm a small business owner reviewing C13. Is the liability and indemnity section okay for me?
+```
+
+A short form also works: `C05 termination`. Type a contract ID from C01 to C15, optionally with a clause family (`payment`, `termination`, `liability_indemnity`, `confidentiality`, `renewal`, `dispute_governing_law`).
+
+**What you will see.** The pre-pass gives a first verdict. If a trigger fires (low confidence, a missing verdict, a failed quote check), the verifier calls `search_contract`, `check_cross_reference` and other tools, and finishes with `finalize`. The final answer has the verdict and severity, the quote with its section, how the verdict was decided, a ranked revision plan, and the human-review list. A run takes a few minutes.
+
+**Known issues**
+
+- `Form data requires "python-multipart"`: run `pip install python-multipart`.
+- `address already in use`: choose another port with `--port`.
+- `'ascii' codec can't encode characters`: the key contains a stray character. Re-enter it with `read -s`.
+- The model is not deterministic, so the same question can give a different answer on a second run (the C13 demo is an example).
 
 ## Scope: vendor service agreements
 
@@ -20,9 +80,15 @@ Out of scope: transportation, marketing or promotion partnerships, licenses with
 | `data/contracts/C01.txt` … `C15.txt` | Full text of the 15 contracts, taken from `CUAD_v1.json` |
 | `data/contracts_pdf/C01.pdf` … `C15.pdf` | Original CUAD PDFs of the same 15 contracts, renamed to match the IDs |
 | `data/contracts_pdf/all_15_contracts.pdf` | All 15 PDFs merged into one file (120 pages), with a bookmark for each contract |
-| `data/Jenny_Labels_claude.xlsx` | Draft Track B labels for all 90 rows (verdict, severity, notes, evidence), written by Claude under rubric v1.1; to be reviewed by a human annotator |
-| `data/contracts.csv` | Contract list: ID, short name, dev/test split, CUAD folder, word count, original CUAD title |
+| `data/labels_gold.xlsx` | Gold labels for all 90 rows after both of us reviewed our sheets and confirmed the 8 rows we disagreed on (`Jenny's Labels.xlsx` and `Kayla's Labels.xlsx` are the two reviewed sheets) |
+| `data/cuad_gold_spans.csv` | CUAD lawyer highlights for the families CUAD covers, used by Track A |
+| `data/contracts.csv` | Contract list: ID, short name, dev/test split, customer and provider names, CUAD folder, word count, original CUAD title |
 | `notebooks/01_data_setup_v3.ipynb` | Colab notebook that rebuilds everything from CUAD: contract texts, CUAD answer key, coverage tables and the two labeling spreadsheets |
+| `notebooks/07_agent_v2_and_scoring.ipynb` | The agent (pre-pass, bounded per-clause loop, revision planner) and all graders. Version 2, used for the test run |
+| `notebooks/06_baseline_and_scoring.ipynb` | The RAG baseline and its scoring |
+| `notebooks/02`–`05` | Earlier versions of the agent, baseline and scoring, kept for reference |
+| `demo_agent/` | The `adk web` demo (reads notebook 07) |
+| `results/` | Executed runs and score zips for dev and test |
 
 `CUAD_v1.json` (40 MB) is not included. Download CUAD v1 from [atticusprojectai.org/cuad](https://www.atticusprojectai.org/cuad) and upload `CUAD_v1.json` when the notebook asks for it.
 
@@ -78,11 +144,31 @@ Related categories such as Insurance or Minimum Commitment appear as hints in th
 
 ## Workflow
 
-1. Open `notebooks/01_data_setup_v3.ipynb` in Colab, upload `CUAD_v1.json`, and run all cells. This produces `labels_jenny.xlsx` and `labels_kayla.xlsx`.
-2. Read the four dev contracts, fill in the worksheet in section 8 of the rubric, and adjust the (P) thresholds together. Save as rubric v1.1.
-3. Each annotator labels all 15 contracts alone (90 rows each).
-4. Compare the two sheets, settle disagreements, and record agreement.
-5. Build the agent and score it on the 11 test contracts.
+1. `notebooks/01_data_setup_v3.ipynb` in Colab rebuilds the data from `CUAD_v1.json`.
+2. We read the four dev contracts by hand, set the rubric thresholds (rubric v1.1) and labeled all 15 contracts.
+3. Both label sheets were reviewed by both of us and merged into `data/labels_gold.xlsx`.
+4. Design choices (including version 1 against version 2 of the agent) were made on the four dev contracts only.
+5. The 11 test contracts were run once at the end, for the agent and the baseline.
+
+## Results at a glance
+
+On the 11 held-out test contracts (66 rows, six clause families each), all three systems use the same model, prompt, retrieval and graders; the loop is the only difference.
+
+| | RAG baseline | Single pass | Agent loop |
+|---|---|---|---|
+| Verdict accuracy | 0.50 | 0.59 | 0.70 |
+| False alarm rate | 0.76 | 0.24 | 0.41 |
+| Missed risk rate | 0.00 | 0.05 | 0.05 |
+| Cost for 11 contracts | $0.132 | $0.076 | $0.227 |
+
+The loop gets the most verdicts right (p = 0.004 against the baseline) for about two cents a contract, but it raises false alarms, and the model never asked a human for help. See `results/README.md` for the run files.
+
+## Reproduce the scored runs
+
+- **Agent:** open `notebooks/07_agent_v2_and_scoring.ipynb` in Colab, add the Colab secrets `OPENAI_API_KEY` and `GH_TOKEN`, set `SPLIT` to `"dev"` or `"test"`, and choose Runtime → Run all. It runs three contracts at a time with a checkpoint per contract, scores every grader and downloads one zip.
+- **Baseline:** `notebooks/06_baseline_and_scoring.ipynb`, the same way.
+- **Without a key:** executed copies of every run and its score tables are in `results/dev` and `results/test`.
+- If a `scores/llm_judge_plan.csv` from an earlier run exists and the judge step fails with a `TypeError`, delete that file and re-run the scoring cell.
 
 ## Data source and license
 
