@@ -6,66 +6,6 @@ We built a bounded agent that reviews a contract against a rubric, flags problem
 
 **Layout.** Notebooks `01`–`07` (code) are in `notebooks/`; they run from the repo root. `data/` holds the contracts, rubric, CUAD spans and label sheets. `results/dev` and `results/test` hold the executed runs and score zips. `demo_agent/` is the `adk web` demo.
 
-## Run the demo
-
-The demo runs the agent from notebook 07 inside `adk web`. It shows the input, every tool call the verifier makes, and the final findings with quotes, the revision plan and the human-review list. The agent reviews only the clause family you ask about.
-
-You need Python 3.10 or later. Run everything from the repository root.
-
-**1. Clone the repository**
-
-```bash
-git clone https://github.com/JJJJeny/contract-review-agent.git
-cd contract-review-agent
-```
-
-**2. Install the dependencies**
-
-```bash
-pip install google-adk litellm rank_bm25 openai pandas python-multipart
-```
-
-**3. Set the API key.** The agent uses GPT-5 nano through the course Portkey gateway. Enter the key without echoing it, so it does not end up in your shell history:
-
-```bash
-read -s OPENAI_API_KEY && export OPENAI_API_KEY
-```
-
-No key? Use the scripted fake model instead. It needs no key or network, but its answers are canned and not real reviews:
-
-```bash
-export DEMO_FAKE=1
-```
-
-**4. Start the web UI**
-
-```bash
-adk web .
-```
-
-If `adk` is not on your PATH, or port 8000 is taken, use the module form with a free port:
-
-```bash
-python3 -m google.adk.cli web --port 8765 .
-```
-
-**5. Ask for a review.** Open http://127.0.0.1:8000 (or the port you chose), select `demo_agent` in the top left, and type a request, for example:
-
-```text
-I'm a small business owner reviewing C13. Is the liability and indemnity section okay for me?
-```
-
-A short form also works: `C05 termination`. Type a contract ID from C01 to C15, optionally with a clause family (`payment`, `termination`, `liability_indemnity`, `confidentiality`, `renewal`, `dispute_governing_law`).
-
-**What you will see.** The pre-pass gives a first verdict. If a trigger fires (low confidence, a missing verdict, a failed quote check), the verifier calls `search_contract`, `check_cross_reference` and other tools, and finishes with `finalize`. The final answer has the verdict and severity, the quote with its section, how the verdict was decided, a ranked revision plan, and the human-review list. A run takes a few minutes.
-
-**Known issues**
-
-- `Form data requires "python-multipart"`: run `pip install python-multipart`.
-- `address already in use`: choose another port with `--port`.
-- `'ascii' codec can't encode characters`: the key contains a stray character. Re-enter it with `read -s`.
-- The model is not deterministic, so the same question can give a different answer on a second run (the C13 demo is an example).
-
 ## Scope: vendor service agreements
 
 A **vendor service agreement** is a contract in which a provider performs ongoing services (maintenance, support, IT, professional services) for a business customer that pays for them. Maintenance agreements are one kind of service agreement.
@@ -177,3 +117,64 @@ Contract texts and CUAD annotations come from the **Contract Understanding Attic
 Hendrycks, D., Burns, C., Chen, A., & Ball, S. (2021). *CUAD: An Expert-Annotated NLP Dataset for Legal Contract Review.* arXiv:2103.06268.
 
 This project is coursework. Nothing here is legal advice.
+
+## Run the demo
+
+The demo runs the agent from notebook 07 inside `adk web`. It shows the input, every tool call the verifier makes, and the final findings with quotes, the revision plan and the human-review list. The agent reviews only the clause family you ask about.
+
+You need Python 3.10 or later. Run everything from the repository root.
+
+**1. Clone the repository**
+
+```bash
+git clone https://github.com/JJJJeny/contract-review-agent.git
+cd contract-review-agent
+```
+
+**2. Install the dependencies**
+
+```bash
+pip install google-adk litellm rank_bm25 openai pandas python-multipart
+```
+
+**3. Set the API key.** The agent uses GPT-5 nano through the course Portkey gateway. Enter the key without echoing it, so it does not end up in your shell history:
+
+```bash
+read -s OPENAI_API_KEY && export OPENAI_API_KEY
+```
+
+No key? Use the scripted fake model instead. It needs no key or network, but its answers are canned and not real reviews:
+
+```bash
+export DEMO_FAKE=1
+```
+
+**4. Start the web UI**
+
+```bash
+adk web .
+```
+
+If `adk` is not on your PATH, or port 8000 is taken, use the module form with a free port:
+
+```bash
+python3 -m google.adk.cli web --port 8765 .
+```
+
+**5. Ask for a review.** Open http://127.0.0.1:8000 (or the port you chose), select `demo_agent` in the top left, and type a request, for example:
+
+```text
+I'm a small business owner reviewing C13. Is the liability and indemnity section okay for me?
+```
+
+A short form also works: `C05 termination`. Type a contract ID from C01 to C15, optionally with a clause family (`payment`, `termination`, `liability_indemnity`, `confidentiality`, `renewal`, `dispute_governing_law`).
+
+**What you will see.** The pre-pass gives a first verdict. If a trigger fires (low confidence, a missing verdict, a failed quote check), the verifier calls `search_contract`, `check_cross_reference` and other tools, and finishes with `finalize`. The final answer has the verdict and severity, the quote with its section, how the verdict was decided, a ranked revision plan, and the human-review list. A run takes a few minutes.
+
+**Known issues**
+
+- `Form data requires "python-multipart"`: run `pip install python-multipart`.
+- `address already in use`: choose another port with `--port`.
+- `'ascii' codec can't encode characters`: the key contains a stray character. Re-enter it with `read -s`.
+- The model is not deterministic, so the same question can give a different answer on a second run (the C13 demo is an example).
+
